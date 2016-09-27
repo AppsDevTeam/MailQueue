@@ -17,7 +17,7 @@ class MailQueueExtension extends \Nette\DI\CompilerExtension {
 
 	public function loadConfiguration() {
 		$config = $this->validateConfig([
-			'mailer' => \Nette\Mail\IMailer::class,
+			'mailer' => NULL,
 			'messenger' => NULL,
 			'queueEntityClass' => Entity\MailQueueEntry::class,
 			'autowireMailer' => FALSE,
