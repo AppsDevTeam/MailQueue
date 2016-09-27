@@ -1,0 +1,23 @@
+{
+    "name": "adt/mail-queue",
+    "description": "The ultimate Nette mailing solution.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "AppsDevTeam",
+            "email": "hello@appsdevteam.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "nette/mail": "^2.3",
+        "kdyby/doctrine": "^3.0",
+        "nette/di": "^2.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "ADT\\MailQueue\\": "src/"
+        }
+    }
+}

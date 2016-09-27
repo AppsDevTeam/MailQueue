@@ -29,7 +29,7 @@ doctrine:
 
 ### 1.1.2 Using custom Queue entity
 
-Create your own entity that extends our default entity:
+Create your own entity that extends our abstract entity:
 ```php
 namespace App\Model\Entity;
 
@@ -38,7 +38,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity
  */
-class QueueEntity extends \ADT\MailQueue\Entity\MailQueue {
+class QueueEntity extends \ADT\MailQueue\Entity\AbstractMailQueueEntry {
 
 	/**
 	 * @ORM\Column(type="text")
