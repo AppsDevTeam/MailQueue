@@ -85,3 +85,15 @@ Generate migration and migrate:
 php www/index.php migrations:diff
 php www/index.php migrations:migrate
 ```
+
+### 1.4 Processing enqueued messages
+
+Use predefined console command:
+```bash
+php www/index.php mail-queue:process
+```
+
+or get `ADT\MailQueue\Services\QueueService` from DI container and call:
+```php
+$queueService->process()
+```
