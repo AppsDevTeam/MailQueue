@@ -74,9 +74,9 @@ class QueueService {
 			$output->write('Locking mutex ...');
 		}
 
-		// this is NOT atomic mutex!
-		// it is all we have right now and it should be enough for our purpose but in case it is not,
-		// just make sure the "read, increment, write" operation is atomic and all should work just fine
+		// DISCLAIMER: This is NOT atomic mutex!
+		// It is all we have right now and it should be enough for our purpose but in case it is not,
+		// just make sure the "read, increment, write" operation is atomic and everything should work just fine.
 		file_put_contents($this->mutexFile, (@file_get_contents($this->mutexFile) ?: 0) + 1); // @ - file may not exist yet
 
 		if (file_get_contents($this->mutexFile) !== '1') {
