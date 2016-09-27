@@ -51,6 +51,8 @@ adtMailQueue:
 	queueEntityClass: App\Model\Entity\QueueEntity
 ```
 
+---
+
 ### 1.2.1 Using one and only `IMailer`
 
 ```neon
