@@ -58,15 +58,16 @@ adtMailQueue:
 	mailer: ADT\SparkPostApiMailer\Service\SparkPostApiMailer
 ```
 
-### 1.2.2 Multiple `IMailer` by Queue entity
+### 1.2.2 Custom mailer
 
-Allows you to choose whatever mailer you want to use in the run-time.
+If you need to decide which mailer you want to use based on information
+in your custom Queue entity, you can implement `ADT\MailQueue\Service\IMessenger`
+interface. This interface has `send($entity)` method where `$entity` is your custom entity.
 
 ```neon
 adtMailQueue:
 	messenger: App\Model\QueueMailerMessenger # implements ADT\MailQueue\Service\IMessenger
 ```
-
 
 ---
 
