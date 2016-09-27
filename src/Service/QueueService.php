@@ -18,7 +18,10 @@ class QueueService {
 	protected $mutexFile;
 
 	/** @var \Nette\Mail\IMailer */
-	protected $outboundMailer;
+	protected $mailer;
+
+	/** @var IMessenger */
+	protected $messenger;
 
 	public function __construct($tempDir, $queueEntryClass, \Kdyby\Doctrine\EntityManager $em) {
 		$this->mutexFile = 'nette.safe://' . $tempDir . '/adt-mail-queue.lock';
@@ -26,8 +29,12 @@ class QueueService {
 		$this->em = $em;
 	}
 
-	public function setOutboundMailer(\Nette\Mail\IMailer $outboundMailer) {
-		$this->outboundMailer = $outboundMailer;
+	public function setMailer(\Nette\Mail\IMailer $mailer) {
+		$this->mailer = $mailer;
+	}
+
+	public function setMessenger(IMessenger $messenger) {
+		$this->messenger = $messenger;
 	}
 
 	/**
@@ -97,6 +104,14 @@ class QueueService {
 		}
 	}
 
+	protected function send(Entity\AbstractMailQueueEntry $entry) {
+		if ($this->mailer) {
+			$this->mailer->send($entry->message);
+		} else {
+			$this->messenger->send($entry);
+		}
+	}
+
 	public function process(OutputInterface $output = NULL) {
 		if (!$this->mutexLock($output)) {
 			// mutex is already locked
@@ -118,7 +133,7 @@ class QueueService {
 				}
 
 				try {
-					$this->outboundMailer->send($entry->message);
+					$this->send($entry);
 				} catch (\Exception $e) {
 					// log?
 					continue;

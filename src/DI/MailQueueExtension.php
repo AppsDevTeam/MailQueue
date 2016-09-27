@@ -10,17 +10,29 @@ use ADT\MailQueue\Service;
 class MailQueueExtension extends \Nette\DI\CompilerExtension {
 
 	/** @var string */
-	protected $outboundMailerType;
+	protected $mailerClass;
+
+	/** @var string */
+	protected $messengerClass;
 
 	public function loadConfiguration() {
 		$config = $this->validateConfig([
 			'mailer' => \Nette\Mail\IMailer::class,
+			'messenger' => NULL,
 			'queueEntityClass' => Entity\MailQueueEntry::class,
 			'autowireMailer' => FALSE,
 		]);
 
-		if (!is_a($config['mailer'], \Nette\Mail\IMailer::class, TRUE)) {
+		if (!empty($config['messenger']) && !empty($config['mailer'])) {
+			throw new \Nette\InvalidArgumentException('Cannot specify both mailer and messenger at the same time.');
+		}
+
+		if (empty($config['messenger']) && !is_a($config['mailer'], \Nette\Mail\IMailer::class, TRUE)) {
 			throw new \Nette\InvalidArgumentException('Invalid mailer class.');
+		}
+
+		if (!empty($config['messenger']) && !is_a($config['messenger'], Service\IMessenger::class, TRUE)) {
+			throw new \Nette\InvalidArgumentException('Invalid messenger class.');
 		}
 
 		if (!is_a($config['queueEntityClass'], Entity\AbstractMailQueueEntry::class, TRUE)) {
@@ -28,7 +40,9 @@ class MailQueueExtension extends \Nette\DI\CompilerExtension {
 		}
 
 		// Queue service
-		$this->outboundMailerType = $config['mailer'];
+		$this->mailerClass = $config['mailer'];
+		$this->messengerClass = $config['messenger'];
+
 		$this->getContainerBuilder()
 			->addDefinition($this->prefix('queue'))
 			->setClass(Service\QueueService::class)
@@ -51,16 +65,24 @@ class MailQueueExtension extends \Nette\DI\CompilerExtension {
 	}
 
 	public function beforeCompile() {
+		$serviceClass = $this->mailerClass ?: $this->messengerClass;
+
 		$serviceName = $this->getContainerBuilder()
-			->getByType($this->outboundMailerType);
+			->getByType($serviceClass);
 
 		if (!$serviceName) {
-			throw new \Nette\InvalidArgumentException('No service of type ' . $this->outboundMailerType . ' found.');
+			throw new \Nette\InvalidArgumentException('No service of type ' . $serviceClass . ' found.');
 		}
 
-		$this->getContainerBuilder()
-			->getDefinition($this->prefix('queue'))
-			->addSetup('$service->setOutboundMailer($this->getService(?))', [ $serviceName ]);
+		$serviceDefinition = $this->getContainerBuilder()
+			->getDefinition($this->prefix('queue'));
+
+		$serviceDefinition->addSetup(
+			$this->mailerClass
+				? '$service->setMailer($this->getService(?))'
+				: '$service->setMessenger($this->getService(?))',
+			[ $serviceName ]
+		);
 	}
 
 

@@ -13,9 +13,6 @@ config.neon:
 ```neon
 extensions:
 	adtMailQueue: ADT\MailQueue\DI\MailQueueExtension
-
-adtMailQueue:
-	mailer: @sparkPostMailer # outbound mailer
 ```
 
 ### 1.1.1 Using default Queue entity
@@ -54,9 +51,26 @@ adtMailQueue:
 	queueEntityClass: App\Model\Entity\QueueEntity
 ```
 
+### 1.2.1 Using one and only `IMailer`
+
+```neon
+adtMailQueue:
+	mailer: ADT\SparkPostApiMailer\Service\SparkPostApiMailer
+```
+
+### 1.2.2 Multiple `IMailer` by Queue entity
+
+Allows you to choose whatever mailer you want to use in the run-time.
+
+```neon
+adtMailQueue:
+	messenger: App\Model\QueueMailerMessenger # implements ADT\MailQueue\Service\IMessenger
+```
+
+
 ---
 
-### 1.2 Migration
+### 1.3 Migration
 
 Clear your `temp/cache` directory.
 
