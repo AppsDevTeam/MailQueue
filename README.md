@@ -2,7 +2,7 @@
 
 Allows in-app mail queueing and delayed sending.
 
-## Installation
+## 1.1 Installation
 
 composer:
 ```bash
@@ -13,9 +13,12 @@ config.neon:
 ```neon
 extensions:
 	adtMailQueue: ADT\MailQueue\DI\MailQueueExtension
+
+adtMailQueue:
+	mailer: @sparkPostMailer # outbound mailer
 ```
 
-### Using default Queue entity
+### 1.1.1 Using default Queue entity
 
 Let Doctrine know about our entity:
 ```neon
@@ -24,7 +27,7 @@ doctrine:
 		ADT\MailQueue\Entity: %vendorDir%/adt/mail-queue/src/Entity
 ```
 
-### Using custom Queue entity
+### 1.1.2 Using custom Queue entity
 
 Create your own entity that extends our default entity:
 ```php
@@ -45,7 +48,17 @@ class QueueEntity extends \ADT\MailQueue\Entity\MailQueue {
 }
 ```
 
+Let us know about your custom entity:
+```neon
+adtMailQueue:
+	queueEntityClass: App\Model\Entity\QueueEntity
+```
+
 ---
+
+### 1.2 Migration
+
+Clear your `temp/cache` directory.
 
 Generate migration and migrate:
 ```bash
