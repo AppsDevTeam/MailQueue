@@ -71,6 +71,9 @@ adtMailQueue:
 	messenger: App\Model\QueueMailerMessenger # implements ADT\MailQueue\Service\IMessenger
 ```
 
+Note: If you're getting `No service of type ... found.` exception, check that
+you have registered that class as a service.
+
 ---
 
 ### 1.3 Migration
