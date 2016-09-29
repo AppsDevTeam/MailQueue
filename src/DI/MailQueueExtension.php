@@ -9,12 +9,6 @@ use ADT\MailQueue\Service;
 
 class MailQueueExtension extends \Nette\DI\CompilerExtension {
 
-	/** @var string */
-	protected $mailerClass;
-
-	/** @var string */
-	protected $messengerClass;
-
 	public function loadConfiguration() {
 		$config = $this->validateConfig([
 			'mailer' => NULL,
@@ -27,12 +21,8 @@ class MailQueueExtension extends \Nette\DI\CompilerExtension {
 			throw new \Nette\InvalidArgumentException('Cannot specify both mailer and messenger at the same time.');
 		}
 
-		if (empty($config['messenger']) && !is_a($config['mailer'], \Nette\Mail\IMailer::class, TRUE)) {
-			throw new \Nette\InvalidArgumentException('Invalid mailer class.');
-		}
-
-		if (!empty($config['messenger']) && !is_a($config['messenger'], Service\IMessenger::class, TRUE)) {
-			throw new \Nette\InvalidArgumentException('Invalid messenger class.');
+		if (empty($config['messenger']) && empty($config['mailer'])) {
+			throw new \Nette\InvalidArgumentException('Please specify mailer or messenger service.');
 		}
 
 		if (!is_a($config['queueEntityClass'], Entity\AbstractMailQueueEntry::class, TRUE)) {
@@ -40,8 +30,10 @@ class MailQueueExtension extends \Nette\DI\CompilerExtension {
 		}
 
 		// Queue service
-		$this->mailerClass = $config['mailer'];
-		$this->messengerClass = $config['messenger'];
+		$serviceName = $config['mailer'] ?: $config['messenger'];
+		if (strrpos($serviceName, '@') !== 0) {
+			throw new \Nette\InvalidArgumentException('Service name has to be prefixed with exactly one \'@\'.');
+		}
 
 		$this->getContainerBuilder()
 			->addDefinition($this->prefix('queue'))
@@ -49,7 +41,13 @@ class MailQueueExtension extends \Nette\DI\CompilerExtension {
 			->setArguments([
 				$this->getContainerBuilder()->parameters['tempDir'],
 				$config['queueEntityClass']
-			]);
+			])
+			->addSetup(
+				$config['mailer']
+					? '$service->setMailer($this->getService(?))'
+					: '$service->setMessenger($this->getService(?))',
+				[ ltrim($serviceName, '@') ]
+			);
 
 		// Mailer service
 		$this->getContainerBuilder()
@@ -63,27 +61,5 @@ class MailQueueExtension extends \Nette\DI\CompilerExtension {
 			->setClass(Console\ProcessCommand::class)
 			->addTag('kdyby.console.command');
 	}
-
-	public function beforeCompile() {
-		$serviceClass = $this->mailerClass ?: $this->messengerClass;
-
-		$serviceName = $this->getContainerBuilder()
-			->getByType($serviceClass);
-
-		if (!$serviceName) {
-			throw new \Nette\InvalidArgumentException('No service of type ' . $serviceClass . ' found.');
-		}
-
-		$serviceDefinition = $this->getContainerBuilder()
-			->getDefinition($this->prefix('queue'));
-
-		$serviceDefinition->addSetup(
-			$this->mailerClass
-				? '$service->setMailer($this->getService(?))'
-				: '$service->setMessenger($this->getService(?))',
-			[ $serviceName ]
-		);
-	}
-
 
 }

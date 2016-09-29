@@ -57,7 +57,7 @@ adtMailQueue:
 
 ```neon
 adtMailQueue:
-	mailer: ADT\SparkPostApiMailer\Service\SparkPostApiMailer
+	mailer: @sparkPostApiMailerService
 ```
 
 ### 1.2.2 Custom mailer
@@ -68,11 +68,8 @@ interface. This interface has `send($entity)` method where `$entity` is your cus
 
 ```neon
 adtMailQueue:
-	messenger: App\Model\QueueMailerMessenger # implements ADT\MailQueue\Service\IMessenger
+	messenger: @queueMailerMessenger
 ```
-
-Note: If you're getting `No service of type ... found.` exception, check that
-you have registered that class as a service.
 
 ---
 
