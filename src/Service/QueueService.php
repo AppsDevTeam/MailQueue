@@ -139,6 +139,7 @@ class QueueService {
 
 				try {
 					$this->send($entry);
+					$entry->sentAt = new \DateTime;
 				} catch (\Exception $e) {
 					// mail report
 					$errors[] = 'Message ' . (1 + $counter) . '/' . $count . '; id=' . $entry->getId() . ': ' . $e->getMessage();
@@ -151,10 +152,8 @@ class QueueService {
 							$output->writeln('');
 						}
 					}
-					continue;
 				}
 
-				$entry->sentAt = new \DateTime;
 				$this->em->persist($entry);
 				$this->em->flush($entry);
 			}
