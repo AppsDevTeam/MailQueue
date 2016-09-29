@@ -65,4 +65,9 @@ abstract class AbstractMailQueueEntry {
 		}
 		return $this;
 	}
+
+	/**
+	 * @return mixed|NULL
+	 */
+	abstract public function getId();
 }

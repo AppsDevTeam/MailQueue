@@ -126,7 +126,7 @@ class QueueService {
 		$orderBy = [ 'createdAt' => 'ASC' ];
 		$repo = $this->em->getRepository($this->queueEntryClass);
 		$count = min($repo->countBy($undeliveredCriteria), 1000);
-		$errors = [ ];
+		$errors = [];
 
 		if ($count) {
 			/** @var Entity\AbstractMailQueueEntry[] $entries */
@@ -140,8 +140,10 @@ class QueueService {
 				try {
 					$this->send($entry);
 				} catch (\Exception $e) {
-					$errors[] = 'Message ' . (1 + $counter) . '/' . $count . ': ' . $e->getMessage();
+					// mail report
+					$errors[] = 'Message ' . (1 + $counter) . '/' . $count . '; id=' . $entry->getId() . ': ' . $e->getMessage();
 
+					// CLI report
 					if ($output) {
 						$output->write('; error: ' . $e->getMessage());
 
