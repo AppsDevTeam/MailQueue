@@ -140,7 +140,7 @@ class QueueService {
 				try {
 					$this->send($entry);
 				} catch (\Exception $e) {
-					$errors[] = 'Message ' . $counter . '/' . $count . ': ' . $e->getMessage();
+					$errors[] = 'Message ' . (1 + $counter) . '/' . $count . ': ' . $e->getMessage();
 
 					if ($output) {
 						$output->write('; error: ' . $e->getMessage());
