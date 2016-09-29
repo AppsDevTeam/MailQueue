@@ -37,7 +37,32 @@ abstract class AbstractMailQueueEntry {
 	protected $subject;
 
 	/**
-	 * @ORM\Column(type="object", nullable=true)
+	 * @ORM\Column(type="blob", nullable=true)
 	 */
 	protected $message;
+
+	/**
+	 * @return \Nette\Mail\Message|NULL
+	 */
+	public function getMessage() {
+		if ($this->message === NULL) {
+			return NULL;
+		}
+
+		// $this->message is stream resource
+		return unserialize(stream_get_contents($this->message));
+	}
+
+	/**
+	 * @param \Nette\Mail\Message|NULL $message
+	 * @return $this
+	 */
+	public function setMessage(\Nette\Mail\Message $message = NULL) {
+		if ($message === NULL) {
+			$this->message = NULL;
+		} else {
+			$this->message = serialize($message);
+		}
+		return $this;
+	}
 }
