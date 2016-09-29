@@ -23,10 +23,14 @@ class QueueService {
 	/** @var IMessenger */
 	protected $messenger;
 
-	public function __construct($tempDir, $queueEntryClass, \Kdyby\Doctrine\EntityManager $em) {
+	/** @var \Tracy\Logger */
+	protected $logger;
+
+	public function __construct($tempDir, $queueEntryClass, \Kdyby\Doctrine\EntityManager $em, \Tracy\Logger $logger) {
 		$this->mutexFile = 'nette.safe://' . $tempDir . '/adt-mail-queue.lock';
 		$this->queueEntryClass = $queueEntryClass;
 		$this->em = $em;
+		$this->logger = $logger;
 	}
 
 	public function setMailer(\Nette\Mail\IMailer $mailer) {
@@ -122,6 +126,7 @@ class QueueService {
 		$orderBy = [ 'createdAt' => 'ASC' ];
 		$repo = $this->em->getRepository($this->queueEntryClass);
 		$count = min($repo->countBy($undeliveredCriteria), 1000);
+		$errors = [ ];
 
 		if ($count) {
 			/** @var Entity\AbstractMailQueueEntry[] $entries */
@@ -135,7 +140,8 @@ class QueueService {
 				try {
 					$this->send($entry);
 				} catch (\Exception $e) {
-					// log?
+					$errors[] = 'Message ' . $counter . '/' . $count . ': ' . $e->getMessage();
+
 					if ($output) {
 						$output->write('; error: ' . $e->getMessage());
 
@@ -159,6 +165,12 @@ class QueueService {
 		}
 
 		$this->mutexUnlock($output);
+
+		if ($errors) {
+			$errors = implode(PHP_EOL, $errors);
+			$this->logger->log($errors, \Tracy\Logger::ERROR);
+		}
+
 		return TRUE;
 	}
 
