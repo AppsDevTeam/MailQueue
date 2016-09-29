@@ -136,6 +136,13 @@ class QueueService {
 					$this->send($entry);
 				} catch (\Exception $e) {
 					// log?
+					if ($output) {
+						$output->write('; error: ' . $e->getMessage());
+
+						if (count($entries) < $counter) {
+							$output->writeln('');
+						}
+					}
 					continue;
 				}
 
