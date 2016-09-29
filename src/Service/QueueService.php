@@ -26,11 +26,11 @@ class QueueService {
 	/** @var \Tracy\Logger */
 	protected $logger;
 
-	public function __construct($tempDir, $queueEntryClass, \Kdyby\Doctrine\EntityManager $em, \Tracy\Logger $logger) {
+	public function __construct($tempDir, $queueEntryClass, \Kdyby\Doctrine\EntityManager $em) {
 		$this->mutexFile = 'nette.safe://' . $tempDir . '/adt-mail-queue.lock';
 		$this->queueEntryClass = $queueEntryClass;
 		$this->em = $em;
-		$this->logger = $logger;
+		$this->logger = \Tracy\Debugger::getLogger();
 	}
 
 	public function setMailer(\Nette\Mail\IMailer $mailer) {
