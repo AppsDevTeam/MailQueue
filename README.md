@@ -51,6 +51,22 @@ adtMailQueue:
 	queueEntityClass: App\Model\Entity\QueueEntity
 ```
 
+To fill custom properties of your entity when enqueueing mail,
+you can use second argument of `enqueue`:
+```php
+$this->mailQueueService->enqueue($mail, [
+	'customProperty' => 'customValue'
+]);
+```
+
+or
+
+```php
+$this->mailQueueService->enqueue($mail, function (QueueEntity $e) {
+	$e->customProperty = 'customValue';
+});
+```
+
 ---
 
 ### 1.2.1 Using one and only `IMailer`

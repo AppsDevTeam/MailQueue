@@ -43,10 +43,10 @@ class QueueService {
 
 	/**
 	 * @param \Nette\Mail\Message $message
-	 * @param array $customFields
+	 * @param array|callable $custom
 	 * @return Entity\AbstractMailQueueEntry
 	 */
-	protected function createQueueEntry(\Nette\Mail\Message $message, array $customFields = []) {
+	protected function createQueueEntry(\Nette\Mail\Message $message, $custom = []) {
 		/** @var Entity\AbstractMailQueueEntry $entry */
 		$entry = new $this->queueEntryClass;
 		$entry->createdAt = new \DateTime;
@@ -54,8 +54,12 @@ class QueueService {
 		$entry->subject = $message->getSubject();
 		$entry->message = $message;
 
-		foreach ($customFields as $field => $value) {
-			$entry->$field = $value;
+		if (is_callable($custom)) {
+			$custom($entry);
+		} else {
+			foreach ($custom as $field => $value) {
+				$entry->$field = $value;
+			}
 		}
 
 		return $entry;
@@ -63,11 +67,11 @@ class QueueService {
 
 	/**
 	 * @param \Nette\Mail\Message $message
-	 * @param array $customFields
+	 * @param array|callable $custom
 	 * @return Entity\AbstractMailQueueEntry
 	 */
-	public function enqueue(\Nette\Mail\Message $message, array $customFields = []) {
-		$entry = $this->createQueueEntry($message, $customFields);
+	public function enqueue(\Nette\Mail\Message $message, $custom = []) {
+		$entry = $this->createQueueEntry($message, $custom);
 		$this->em->persist($entry);
 		$this->em->flush($entry);
 		return $entry;
