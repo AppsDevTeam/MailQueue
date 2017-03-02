@@ -110,3 +110,23 @@ or get `ADT\MailQueue\Services\QueueService` from DI container and call:
 ```php
 $queueService->process()
 ```
+
+### 1.5 Send error handler
+
+If you need to handle send error, you can set:
+```neon
+adtMailQueue:
+	sendErrorHandler: @ErrorHandlerClass::handlerMethod
+```
+
+Handler method receives queue entry entity and exception generated on send.
+
+### 1.6 Queue drained event
+
+If you need notification when queue is drained, you can set:
+```neon
+adtMailQueue:
+	onQueueDrained: @EventHandlerClass::handlerMethod
+```
+
+Event handler receives instance of `OutputInterface` if available, `NULL` otherwise.

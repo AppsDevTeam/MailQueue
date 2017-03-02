@@ -15,6 +15,8 @@ class MailQueueExtension extends \Nette\DI\CompilerExtension {
 			'messenger' => NULL,
 			'queueEntityClass' => Entity\MailQueueEntry::class,
 			'autowireMailer' => FALSE,
+			'sendErrorHandler' => NULL,
+			'onQueueDrained' => NULL,
 		]);
 
 		if (!empty($config['messenger']) && !empty($config['mailer'])) {
@@ -22,7 +24,7 @@ class MailQueueExtension extends \Nette\DI\CompilerExtension {
 		}
 
 		if (empty($config['messenger']) && empty($config['mailer'])) {
-			throw new \Nette\InvalidArgumentException('Please specify mailer or messenger service.');
+			throw new \Nette\InvalidArgumentException('Please specify mailer or messenger service class (e.g. @ServiceClass).');
 		}
 
 		if (!is_a($config['queueEntityClass'], Entity\AbstractMailQueueEntry::class, TRUE)) {
@@ -30,12 +32,9 @@ class MailQueueExtension extends \Nette\DI\CompilerExtension {
 		}
 
 		// Queue service
-		$serviceName = $config['mailer'] ?: $config['messenger'];
-		if (strrpos($serviceName, '@') !== 0) {
-			throw new \Nette\InvalidArgumentException('Service name has to be prefixed with exactly one \'@\'.');
-		}
+		$service = $config['mailer'] ?: $config['messenger'];
 
-		$this->getContainerBuilder()
+		$queueService = $this->getContainerBuilder()
 			->addDefinition($this->prefix('queue'))
 			->setClass(Service\QueueService::class)
 			->setArguments([
@@ -44,10 +43,24 @@ class MailQueueExtension extends \Nette\DI\CompilerExtension {
 			])
 			->addSetup(
 				$config['mailer']
-					? '$service->setMailer($this->getService(?))'
-					: '$service->setMessenger($this->getService(?))',
-				[ ltrim($serviceName, '@') ]
+					? '$service->setMailer(?)'
+					: '$service->setMessenger(?)',
+				[ $service, ]
 			);
+
+		if (!empty($config['sendErrorHandler'])) {
+			$queueService->addSetup(
+				'$service->setSendErrorHandler(?)',
+				[ $config['sendErrorHandler'], ]
+			);
+		}
+
+		if (!empty($config['onQueueDrained'])) {
+			$queueService->addSetup(
+				'$service->onQueueDrained[] = ?',
+				[ $config['onQueueDrained'], ]
+			);
+		}
 
 		// Mailer service
 		$this->getContainerBuilder()

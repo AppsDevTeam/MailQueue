@@ -6,7 +6,10 @@ use ADT\MailQueue\Entity;
 use Symfony\Component\Console\Output\OutputInterface;
 
 
-class QueueService {
+/**
+ * @method onQueueDrained(OutputInterface|NULL $output)
+ */
+class QueueService extends \Nette\Object {
 
 	/** @var string */
 	protected $queueEntryClass;
@@ -26,6 +29,12 @@ class QueueService {
 	/** @var \Tracy\Logger */
 	protected $logger;
 
+	/** @var NULL|callable */
+	protected $sendErrorHandler;
+
+	/** @var callable[] */
+	protected $onQueueDrained = [];
+
 	public function __construct($tempDir, $queueEntryClass, \Kdyby\Doctrine\EntityManager $em) {
 		$this->mutexFile = 'nette.safe://' . $tempDir . '/adt-mail-queue.lock';
 		$this->queueEntryClass = $queueEntryClass;
@@ -35,10 +44,17 @@ class QueueService {
 
 	public function setMailer(\Nette\Mail\IMailer $mailer) {
 		$this->mailer = $mailer;
+		return $this;
 	}
 
 	public function setMessenger(IMessenger $messenger) {
 		$this->messenger = $messenger;
+		return $this;
+	}
+
+	public function setSendErrorHandler(callable $handler) {
+		$this->sendErrorHandler = $handler;
+		return $this;
 	}
 
 	/**
@@ -145,12 +161,25 @@ class QueueService {
 					$this->send($entry);
 					$entry->sentAt = new \DateTime;
 				} catch (\Exception $e) {
+					$msg = $e->getMessage();
+
+					if ($this->sendErrorHandler) {
+						$errorHandlerResponse = call_user_func($this->sendErrorHandler, $entry, $e);
+
+						if (is_string($errorHandlerResponse)) {
+							// error handled but should be logged
+							$msg .= '; ' . $errorHandlerResponse;
+						} else if ($errorHandlerResponse === NULL) {
+							// error not handled
+						}
+					}
+
 					// mail report
-					$errors[] = 'Message ' . (1 + $counter) . '/' . $count . '; id=' . $entry->getId() . ': ' . $e->getMessage();
+					$errors[] = 'Message ' . (1 + $counter) . '/' . $count . '; id=' . $entry->getId() . ': ' . $msg;
 
 					// CLI report
 					if ($output) {
-						$output->write('; error: ' . $e->getMessage());
+						$output->write('; error: ' . $msg);
 
 						if (count($entries) < $counter) {
 							$output->writeln('');
@@ -175,6 +204,8 @@ class QueueService {
 			$errors = implode(PHP_EOL, $errors);
 			$this->logger->log($errors, \Tracy\Logger::ERROR);
 		}
+
+		$this->onQueueDrained($output);
 
 		return TRUE;
 	}
