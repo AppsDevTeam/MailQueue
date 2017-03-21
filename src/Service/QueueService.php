@@ -33,7 +33,7 @@ class QueueService extends \Nette\Object {
 	protected $sendErrorHandler;
 
 	/** @var callable[] */
-	protected $onQueueDrained = [];
+	public $onQueueDrained = [];
 
 	public function __construct($tempDir, $queueEntryClass, \Kdyby\Doctrine\EntityManager $em) {
 		$this->mutexFile = 'nette.safe://' . $tempDir . '/adt-mail-queue.lock';
@@ -163,8 +163,16 @@ class QueueService extends \Nette\Object {
 				} catch (\Exception $e) {
 					$msg = $e->getMessage();
 
+					if ($e->getPrevious()) {
+						$msg .= " (" . $e->getPrevious()->getMessage() . ")";
+					}
+
 					if ($this->sendErrorHandler) {
-						$errorHandlerResponse = call_user_func($this->sendErrorHandler, $entry, $e);
+						$sendException = $e instanceof \Nette\Mail\SendException
+							? $e
+							: new \Nette\Mail\SendException($msg, $e->getCode(), $e);
+
+						$errorHandlerResponse = call_user_func($this->sendErrorHandler, $entry, $sendException);
 
 						if (is_string($errorHandlerResponse)) {
 							// error handled but should be logged
@@ -181,7 +189,7 @@ class QueueService extends \Nette\Object {
 					if ($output) {
 						$output->write('; error: ' . $msg);
 
-						if (count($entries) < $counter) {
+						if (count($entries) - 1 > $counter) {
 							$output->writeln('');
 						}
 					}
