@@ -11,6 +11,9 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class QueueService extends \Nette\Object {
 
+	const MUTEX_TIME_FORMAT = DATE_W3C;
+	const MUTEX_TIMEOUT = 600;
+
 	/** @var string */
 	protected $queueEntryClass;
 
@@ -19,6 +22,9 @@ class QueueService extends \Nette\Object {
 
 	/** @var string */
 	protected $mutexFile;
+
+	/** @var string */
+	protected $mutexTimeFile;
 
 	/** @var \Nette\Mail\IMailer */
 	protected $mailer;
@@ -37,6 +43,8 @@ class QueueService extends \Nette\Object {
 
 	public function __construct($tempDir, $queueEntryClass, \Kdyby\Doctrine\EntityManager $em) {
 		$this->mutexFile = 'nette.safe://' . $tempDir . '/adt-mail-queue.lock';
+		$this->mutexTimeFile = 'nette.safe://' . $tempDir . '/adt-mail-queue.lock.timestamp';
+
 		$this->queueEntryClass = $queueEntryClass;
 		$this->em = $em;
 		$this->logger = \Tracy\Debugger::getLogger();
@@ -94,6 +102,8 @@ class QueueService extends \Nette\Object {
 	}
 
 	protected function mutexLock(OutputInterface $output = NULL) {
+		$now = new \DateTime;
+
 		if ($output) {
 			$output->write('Locking mutex ...');
 		}
@@ -101,15 +111,30 @@ class QueueService extends \Nette\Object {
 		// DISCLAIMER: This is NOT atomic mutex!
 		// It is all we have right now and it should be enough for our purpose but in case it is not,
 		// just make sure the "read, increment, write" operation is atomic and everything should work just fine.
-		file_put_contents($this->mutexFile, (@file_get_contents($this->mutexFile) ?: 0) + 1); // @ - file may not exist yet
+		file_put_contents($this->mutexFile, $mutexValue = ((@file_get_contents($this->mutexFile) ?: 0) + 1)); // @ - file may not exist yet
 
-		if (file_get_contents($this->mutexFile) !== '1') {
+		if ($mutexValue !== 1) {
 			if ($output) {
 				$output->writeln(' already locked');
 			}
 
+			$mutexCreatedAt = \DateTime::createFromFormat(static::MUTEX_TIME_FORMAT, file_get_contents($this->mutexTimeFile));
+			$mutexLockedFor = $now->getTimestamp() - $mutexCreatedAt->getTimestamp();
+
+			if ($output) {
+				$output->writeln('Mutex has been locked for ' . $mutexLockedFor . ' seconds');
+			}
+
+			if ($mutexLockedFor >= static::MUTEX_TIMEOUT) {
+				$this->mutexUnlock($output);
+				return $this->mutexLock($output);
+			}
+
 			return FALSE;
 		}
+
+		// store lock creation time
+		file_put_contents($this->mutexTimeFile, $now->format(static::MUTEX_TIME_FORMAT));
 
 		if ($output) {
 			$output->writeln(' done');
@@ -123,6 +148,7 @@ class QueueService extends \Nette\Object {
 			$output->write('Unlocking mutex ...');
 		}
 		unlink($this->mutexFile);
+		unlink($this->mutexTimeFile);
 		if ($output) {
 			$output->writeln(' done');
 		}
