@@ -205,18 +205,23 @@ class QueueService extends \Nette\Object {
 							$msg .= '; ' . $errorHandlerResponse;
 						} else if ($errorHandlerResponse === NULL) {
 							// error not handled
+						} else {
+							// error handled gracefully
+							$msg = NULL;
 						}
 					}
 
-					// mail report
-					$errors[] = 'Message ' . (1 + $counter) . '/' . $count . '; id=' . $entry->getId() . ': ' . $msg;
+					if ($msg !== NULL) {
+						// mail report
+						$errors[] = 'Message ' . (1 + $counter) . '/' . $count . '; id=' . $entry->getId() . ': ' . $msg;
 
-					// CLI report
-					if ($output) {
-						$output->write('; error: ' . $msg);
+						// CLI report
+						if ($output) {
+							$output->write('; error: ' . $msg);
 
-						if (count($entries) - 1 > $counter) {
-							$output->writeln('');
+							if (count($entries) - 1 > $counter) {
+								$output->writeln('');
+							}
 						}
 					}
 				}
