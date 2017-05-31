@@ -12,7 +12,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 class QueueService extends \Nette\Object {
 
 	const MUTEX_TIME_FORMAT = DATE_W3C;
-	const MUTEX_TIMEOUT = 600;
 
 	/** @var string */
 	protected $queueEntryClass;
@@ -41,11 +40,15 @@ class QueueService extends \Nette\Object {
 	/** @var callable[] */
 	public $onQueueDrained = [];
 
-	public function __construct($tempDir, $queueEntryClass, \Kdyby\Doctrine\EntityManager $em) {
+	/** @var int */
+	protected $lockTimeout;
+
+	public function __construct($tempDir, $config, \Kdyby\Doctrine\EntityManager $em) {
 		$this->mutexFile = 'nette.safe://' . $tempDir . '/adt-mail-queue.lock';
 		$this->mutexTimeFile = 'nette.safe://' . $tempDir . '/adt-mail-queue.lock.timestamp';
 
-		$this->queueEntryClass = $queueEntryClass;
+		$this->lockTimeout = $config['lockTimeout'];
+		$this->queueEntryClass = $config['queueEntityClass'];
 		$this->em = $em;
 		$this->logger = \Tracy\Debugger::getLogger();
 	}
@@ -118,16 +121,18 @@ class QueueService extends \Nette\Object {
 				$output->writeln(' already locked');
 			}
 
-			$mutexCreatedAt = \DateTime::createFromFormat(static::MUTEX_TIME_FORMAT, file_get_contents($this->mutexTimeFile));
-			$mutexLockedFor = $now->getTimestamp() - $mutexCreatedAt->getTimestamp();
+			if ($this->lockTimeout > 0) {
+				$mutexCreatedAt = \DateTime::createFromFormat(static::MUTEX_TIME_FORMAT, file_get_contents($this->mutexTimeFile));
+				$mutexLockedFor = $now->getTimestamp() - $mutexCreatedAt->getTimestamp();
 
-			if ($output) {
-				$output->writeln('Mutex has been locked for ' . $mutexLockedFor . ' seconds');
-			}
+				if ($output) {
+					$output->writeln('Mutex has been locked for ' . $mutexLockedFor . ' seconds');
+				}
 
-			if ($mutexLockedFor >= static::MUTEX_TIMEOUT) {
-				$this->mutexUnlock($output);
-				return $this->mutexLock($output);
+				if ($mutexLockedFor >= $this->lockTimeout) {
+					$this->mutexUnlock($output);
+					return $this->mutexLock($output);
+				}
 			}
 
 			return FALSE;

@@ -17,6 +17,7 @@ class MailQueueExtension extends \Nette\DI\CompilerExtension {
 			'autowireMailer' => FALSE,
 			'sendErrorHandler' => NULL,
 			'onQueueDrained' => NULL,
+			'lockTimeout' => 600,
 		]);
 
 		if (!empty($config['messenger']) && !empty($config['mailer'])) {
@@ -39,7 +40,7 @@ class MailQueueExtension extends \Nette\DI\CompilerExtension {
 			->setClass(Service\QueueService::class)
 			->setArguments([
 				$this->getContainerBuilder()->parameters['tempDir'],
-				$config['queueEntityClass']
+				$config,
 			])
 			->addSetup(
 				$config['mailer']
