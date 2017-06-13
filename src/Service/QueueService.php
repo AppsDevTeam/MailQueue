@@ -162,8 +162,9 @@ class QueueService extends \Nette\Object {
 		if ($output) {
 			$output->write('Unlocking mutex ...');
 		}
-		unlink($this->mutexFile);
-		@unlink($this->mutexTimeFile); // @ - file may not exist
+		// @ - files may not exist
+		@unlink($this->mutexFile);
+		@unlink($this->mutexTimeFile);
 		if ($output) {
 			$output->writeln(' done');
 		}
