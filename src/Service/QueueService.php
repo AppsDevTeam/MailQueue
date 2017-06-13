@@ -114,7 +114,7 @@ class QueueService extends \Nette\Object {
 		// DISCLAIMER: This is NOT atomic mutex!
 		// It is all we have right now and it should be enough for our purpose but in case it is not,
 		// just make sure the "read, increment, write" operation is atomic and everything should work just fine.
-		file_put_contents($this->mutexFile, $mutexValue = ((@file_get_contents($this->mutexFile) ?: 0) + 1)); // @ - file may not exist yet
+		file_put_contents($this->mutexFile, $mutexValue = ((@file_get_contents($this->mutexFile) ?: 0) + 1)); // @ - file may not exist
 
 		if ($mutexValue !== 1) {
 			if ($output) {
@@ -122,14 +122,24 @@ class QueueService extends \Nette\Object {
 			}
 
 			if ($this->lockTimeout > 0) {
-				$mutexCreatedAt = \DateTime::createFromFormat(static::MUTEX_TIME_FORMAT, file_get_contents($this->mutexTimeFile));
-				$mutexLockedFor = $now->getTimestamp() - $mutexCreatedAt->getTimestamp();
+				$mutexCreatedAt = \DateTime::createFromFormat(static::MUTEX_TIME_FORMAT, @file_get_contents($this->mutexTimeFile)); // @ - file may not exist
 
-				if ($output) {
-					$output->writeln('Mutex has been locked for ' . $mutexLockedFor . ' seconds');
+				if (!$mutexCreatedAt) {
+					$unlock = TRUE;
+
+					if ($output) {
+						$output->writeln('Mutex has been locked but timestamp is invalid');
+					}
+				} else {
+					$mutexLockedFor = $now->getTimestamp() - $mutexCreatedAt->getTimestamp();
+					$unlock = $mutexLockedFor >= $this->lockTimeout;
+
+					if ($output) {
+						$output->writeln('Mutex has been locked for ' . $mutexLockedFor . ' seconds');
+					}
 				}
 
-				if ($mutexLockedFor >= $this->lockTimeout) {
+				if ($unlock) {
 					$this->mutexUnlock($output);
 					return $this->mutexLock($output);
 				}
@@ -153,7 +163,7 @@ class QueueService extends \Nette\Object {
 			$output->write('Unlocking mutex ...');
 		}
 		unlink($this->mutexFile);
-		unlink($this->mutexTimeFile);
+		@unlink($this->mutexTimeFile); // @ - file may not exist
 		if ($output) {
 			$output->writeln(' done');
 		}
