@@ -44,6 +44,10 @@ class QueueService extends \Nette\Object {
 	protected $lockTimeout;
 
 	public function __construct($config, \Kdyby\Doctrine\EntityManager $em) {
+		if (is_dir($config['tempDir']) {
+			mkdir($config['tempDir']);	
+		}
+		
 		$this->mutexFile = 'nette.safe://' . $config['tempDir'] . '/adt-mail-queue.lock';
 		$this->mutexTimeFile = 'nette.safe://' . $config['tempDir'] . '/adt-mail-queue.lock.timestamp';
 
