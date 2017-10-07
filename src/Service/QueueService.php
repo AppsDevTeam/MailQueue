@@ -44,7 +44,7 @@ class QueueService extends \Nette\Object {
 	protected $lockTimeout;
 
 	public function __construct($config, \Kdyby\Doctrine\EntityManager $em) {
-		if (is_dir($config['tempDir'])) {
+		if (! is_dir($config['tempDir'])) {
 			mkdir($config['tempDir']);	
 		}
 		
