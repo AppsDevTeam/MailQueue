@@ -9,7 +9,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * @method onQueueDrained(OutputInterface|NULL $output)
  */
-class QueueService extends \Nette\Object {
+class QueueService {
+	
+	use \Nette\SmartObject;
 
 	const MUTEX_TIME_FORMAT = DATE_W3C;
 
