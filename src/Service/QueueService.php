@@ -45,6 +45,9 @@ class QueueService {
 	/** @var int */
 	protected $lockTimeout;
 
+	/** @var int */
+	protected $limit;
+
 	public function __construct($config, \Kdyby\Doctrine\EntityManager $em) {
 		if (! is_dir($config['tempDir'])) {
 			mkdir($config['tempDir']);	
@@ -54,6 +57,7 @@ class QueueService {
 		$this->mutexTimeFile = 'nette.safe://' . $config['tempDir'] . '/adt-mail-queue.lock.timestamp';
 
 		$this->lockTimeout = $config['lockTimeout'];
+		$this->limit = $config['limit'];
 		$this->queueEntryClass = $config['queueEntityClass'];
 		$this->em = $em;
 		$this->logger = \Tracy\Debugger::getLogger();
@@ -193,7 +197,7 @@ class QueueService {
 		$undeliveredCriteria = [ 'sentAt' => NULL ];
 		$orderBy = [ 'createdAt' => 'ASC' ];
 		$repo = $this->em->getRepository($this->queueEntryClass);
-		$count = min($repo->countBy($undeliveredCriteria), 1000);
+		$count = min($repo->countBy($undeliveredCriteria), $this->limit);
 		$errors = [];
 
 		if ($count) {
