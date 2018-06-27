@@ -130,3 +130,18 @@ adtMailQueue:
 ```
 
 Event handler receives instance of `OutputInterface` if available, `NULL` otherwise.
+
+## 2.1 Configuration
+
+```neon
+adtMailQueue:
+    messenger: #or mailer
+    queueEntityClass: #default Entity\MailQueueEntry::class,
+    autowireMailer: false
+    sendErrorHandler: null
+    onQueueDrained: null
+    lockTimeout: 600
+    limit: 1000 #how many emails send
+    tempDir: %tempDir%
+```
+

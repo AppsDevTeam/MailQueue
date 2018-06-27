@@ -18,6 +18,7 @@ class MailQueueExtension extends \Nette\DI\CompilerExtension {
 			'sendErrorHandler' => NULL,
 			'onQueueDrained' => NULL,
 			'lockTimeout' => 600,
+			'limit' => 1000,
 			'tempDir' => $this->getContainerBuilder()->parameters['tempDir'],
 		]);
 
