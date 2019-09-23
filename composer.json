@@ -11,9 +11,9 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "nette/mail": "^2.3",
+        "nette/mail": "^2.3 || ~3.0",
         "kdyby/doctrine": "^3.0",
-        "nette/di": "^2.3",
+        "nette/di": "^2.3 || ~3.0",
         "tracy/tracy": "^2.3"
     },
     "autoload": {
