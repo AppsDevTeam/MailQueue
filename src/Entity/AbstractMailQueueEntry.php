@@ -14,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @property \Nette\Mail\Message|NULL $message
  */
 abstract class AbstractMailQueueEntry {
-	use \Kdyby\Doctrine\Entities\MagicAccessors;
+	use \Kdyby\Doctrine\MagicAccessors\MagicAccessors;
 
 	/**
 	 * @ORM\Column(type="datetime")
