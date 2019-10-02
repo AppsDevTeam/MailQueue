@@ -11,7 +11,8 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "nette/mail": "^2.3 || ~3.0",
+        "php": "^7.1",
+        "nette/mail": "~3.0",
         "kdyby/doctrine": "^3.0 || ^4.0",
         "kdyby/doctrine-magic-accessors": "^1.0",
         "nette/di": "^2.3 || ~3.0",

@@ -11,7 +11,7 @@ class QueueMailer implements \Nette\Mail\IMailer {
 		$this->queueService = $queueService;
 	}
 
-	public function send(\Nette\Mail\Message $mail) {
+	public function send(\Nette\Mail\Message $mail): void {
 		$this->queueService->enqueue($mail);
 	}
 
