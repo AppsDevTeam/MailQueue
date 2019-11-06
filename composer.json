@@ -14,7 +14,8 @@
         "nette/mail": "^2.3",
         "kdyby/doctrine": "^3.0",
         "nette/di": "^2.3",
-        "tracy/tracy": "^2.3"
+        "tracy/tracy": "^2.3",
+        "adt/background-queue": "^3.12"
     },
     "autoload": {
         "psr-4": {

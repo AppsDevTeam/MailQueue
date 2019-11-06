@@ -143,5 +143,7 @@ adtMailQueue:
     lockTimeout: 600
     limit: 1000 #how many emails send
     tempDir: %tempDir%
+    backgroundQueueService: @ADT\BackgroundQueue\Service
+    backgroundQueueCallbackName: mailSending
 ```
 
