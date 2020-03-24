@@ -10,6 +10,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 
 class ProcessCommand extends Command {
+
+	protected static $defaultName = 'mail-queue:process';
+
 	/**
 	 * {@inheritdoc}
 	 */
