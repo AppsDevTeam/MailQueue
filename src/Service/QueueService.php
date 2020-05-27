@@ -3,6 +3,7 @@
 namespace ADT\MailQueue\Service;
 
 use ADT\MailQueue\Entity;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 
@@ -10,7 +11,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @method onQueueDrained(OutputInterface|NULL $output)
  */
 class QueueService {
-	
+
 	use \Nette\SmartObject;
 
 	const MUTEX_TIME_FORMAT = DATE_W3C;
@@ -48,11 +49,11 @@ class QueueService {
 	/** @var int */
 	protected $limit;
 
-	public function __construct($config, \Kdyby\Doctrine\EntityManager $em) {
+	public function __construct($config, EntityManagerInterface $em) {
 		if (! is_dir($config['tempDir'])) {
-			mkdir($config['tempDir']);	
+			mkdir($config['tempDir']);
 		}
-		
+
 		$this->mutexFile = 'nette.safe://' . $config['tempDir'] . '/adt-mail-queue.lock';
 		$this->mutexTimeFile = 'nette.safe://' . $config['tempDir'] . '/adt-mail-queue.lock.timestamp';
 
@@ -188,6 +189,20 @@ class QueueService {
 		}
 	}
 
+	/**
+	 * @param array $criteria
+	 * @return int
+	 */
+	public function countNotSent(array $criteria = [])
+	{
+		return (int) $this->em->createQueryBuilder('e')
+			->from($this->queueEntryClass, 'e')
+			->where('e.sentAt IS NULL')
+			->select('COUNT(e)')
+			->getQuery()->getSingleScalarResult();
+	}
+
+
 	public function process(OutputInterface $output = NULL) {
 		if (!$this->mutexLock($output)) {
 			// mutex is already locked
@@ -197,7 +212,8 @@ class QueueService {
 		$undeliveredCriteria = [ 'sentAt' => NULL ];
 		$orderBy = [ 'createdAt' => 'ASC' ];
 		$repo = $this->em->getRepository($this->queueEntryClass);
-		$count = min($repo->countBy($undeliveredCriteria), $this->limit);
+
+		$count = min($this->countNotSent(), $this->limit);
 		$errors = [];
 
 		if ($count) {
