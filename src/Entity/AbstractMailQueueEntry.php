@@ -50,6 +50,7 @@ abstract class AbstractMailQueueEntry {
 		}
 
 		// $this->message is stream resource
+		rewind($this->message);
 		return unserialize(stream_get_contents($this->message));
 	}
 
