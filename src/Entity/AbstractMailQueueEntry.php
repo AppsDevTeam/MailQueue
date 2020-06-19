@@ -14,7 +14,6 @@ use Doctrine\ORM\Mapping as ORM;
  * @property \Nette\Mail\Message|NULL $message
  */
 abstract class AbstractMailQueueEntry {
-	use \Kdyby\Doctrine\MagicAccessors\MagicAccessors;
 
 	/**
 	 * @ORM\Column(type="datetime")
@@ -58,7 +57,7 @@ abstract class AbstractMailQueueEntry {
 	 * @param \Nette\Mail\Message|NULL $message
 	 * @return $this
 	 */
-	public function setMessage(\Nette\Mail\Message $message = NULL) {
+	public function setMessage(\Nette\Mail\Message $message = NULL): self {
 		if ($message === NULL) {
 			$this->message = NULL;
 		} else {
@@ -71,4 +70,70 @@ abstract class AbstractMailQueueEntry {
 	 * @return mixed|NULL
 	 */
 	abstract public function getId();
+
+
+	/**
+	 * @return \DateTime
+	 */
+	public function getCreatedAt(): \DateTime {
+		return $this->createdAt;
+	}
+
+	/**
+	 * @param \DateTime $createdAt
+	 * @return AbstractMailQueueEntry
+	 */
+	public function setCreatedAt(\DateTime $createdAt): self {
+		$this->createdAt = $createdAt;
+		return $this;
+	}
+
+	/**
+	 * @return \DateTime|NULL
+	 */
+	public function getSentAt(): ?\DateTime {
+		return $this->sentAt;
+	}
+
+	/**
+	 * @param \DateTime|NULL $sentAt
+	 * @return AbstractMailQueueEntry
+	 */
+	public function setSentAt(?\DateTime $sentAt): self {
+		$this->sentAt = $sentAt;
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getFrom(): string {
+		return $this->from;
+	}
+
+	/**
+	 * @param string $from
+	 * @return AbstractMailQueueEntry
+	 */
+	public function setFrom(string $from): self {
+		$this->from = $from;
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getSubject(): string {
+		return $this->subject;
+	}
+
+	/**
+	 * @param string $subject
+	 * @return AbstractMailQueueEntry
+	 */
+	public function setSubject(string $subject): self {
+		$this->subject = $subject;
+		return $this;
+	}
+
 }
