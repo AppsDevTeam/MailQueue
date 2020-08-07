@@ -98,16 +98,17 @@ class QueueService {
 	protected function createQueueEntry(\Nette\Mail\Message $message, $custom = []) {
 		/** @var Entity\AbstractMailQueueEntry $entry */
 		$entry = new $this->queueEntryClass;
-		$entry->createdAt = new \DateTime;
-		$entry->from = array_keys($message->getFrom())[0];
-		$entry->subject = $message->getSubject();
-		$entry->message = $message;
+		$entry->setCreatedAt(new \DateTime);
+		$entry->setFrom(array_keys($message->getFrom())[0]);
+		$entry->setSubject($message->getSubject());
+		$entry->setMessage($message);
 
 		if (is_callable($custom)) {
 			$custom($entry);
 		} else {
 			foreach ($custom as $field => $value) {
-				$entry->$field = $value;
+				$setter = 'set' . ucfirst($field);
+				$entry->$setter($value);
 			}
 		}
 
@@ -173,7 +174,7 @@ class QueueService {
 
 		try {
 			$this->send($entry);
-			$entry->sentAt = new \DateTime;
+			$entry->setSentAt(new \DateTime);
 		} catch (\Exception $e) {
 			$msg = $e->getMessage();
 
