@@ -153,7 +153,7 @@ class QueueService {
 
 	protected function send(Entity\AbstractMailQueueEntry $entry) {
 		if ($this->mailer) {
-			$this->mailer->send($entry->message);
+			$this->mailer->send($entry->getMessage());
 		} else {
 			$this->messenger->send($entry);
 		}
