@@ -26,7 +26,7 @@ abstract class AbstractMailQueueEntry {
 	protected $sentAt;
 
 	/**
-	 * @ORM\Column(type="text", name="`from`")
+	 * @ORM\Column(type="string", name="`from`")
 	 */
 	protected $from;
 
