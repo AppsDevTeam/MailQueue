@@ -15,7 +15,7 @@
         "nette/mail": "~3.0",
         "nette/di": "^2.3 || ~3.0",
         "tracy/tracy": "^2.3",
-        "adt/background-queue": "^3.12"
+        "adt/background-queue": "^3.12|^4.2"
     },
     "autoload": {
         "psr-4": {
