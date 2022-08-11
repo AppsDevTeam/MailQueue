@@ -141,14 +141,12 @@ class QueueService {
 
 
 	/**
-	 * @param \ADT\BackgroundQueue\Entity\QueueEntity $entity
+	 * @param int $entryId
 	 * @return bool
 	 *
 	 * new_rabbit
 	 */
-	public function process(\ADT\BackgroundQueue\Entity\QueueEntity $entity) {
-		$parameters = $entity->getParameters();
-		$entryId = $parameters[self::PARAMETER_NAME_MAIL_QUEUE_ENTRY_ID];
+	public function process(int $entryId) {
 		$entry = $this->em->find($this->queueEntryClass, $entryId);
 
 
