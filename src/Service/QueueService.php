@@ -126,7 +126,7 @@ class QueueService {
 		$this->em->persist($entry);
 		$this->em->flush($entry);
 
-		$this->backgroundQueueService->publish($this->backgroundQueueCallbackName, [self::PARAMETER_NAME_MAIL_QUEUE_ENTRY_ID => $entry->getId()]);
+		$this->backgroundQueueService->publish($this->backgroundQueueCallbackName, [$entry->getId()]);
 
 		return $entry;
 	}
