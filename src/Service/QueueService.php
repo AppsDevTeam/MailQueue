@@ -51,7 +51,7 @@ class QueueService {
 	/** @var int */
 	protected $limit;
 
-	/** @var \ADT\BackgroundQueue\Service */
+	/** @var \ADT\BackgroundQueue\BackgroundQueue */
 	protected $backgroundQueueService;
 
 	/** @var string */
@@ -115,26 +115,6 @@ class QueueService {
 		return $entry;
 	}
 
-	/**
-	 * @param Entity\AbstractMailQueueEntry $entry
-	 * @return mixed
-	 * @throws \Doctrine\ORM\ORMException
-	 * @throws \Doctrine\ORM\OptimisticLockException
-	 */
-	protected function createRabbitQueueEntry(Entity\AbstractMailQueueEntry $entry) {
-		$entityName = $this->backgroundQueueService->getEntityClass();
-		$entity = new $entityName;
-		$entity->setCallbackName($this->backgroundQueueCallbackName);
-		$entity->setParameters([self::PARAMETER_NAME_MAIL_QUEUE_ENTRY_ID => $entry->getId()]);
-		$this->em->persist($entry);
-		$this->em->flush($entry);
-
-		$this->backgroundQueueService->publish($entity);
-
-		return $entity;
-	}
-
-
 
 	/**
 	 * @param \Nette\Mail\Message $message
@@ -146,7 +126,7 @@ class QueueService {
 		$this->em->persist($entry);
 		$this->em->flush($entry);
 
-		$this->createRabbitQueueEntry($entry);
+		$this->backgroundQueueService->publish($this->backgroundQueueCallbackName, [self::PARAMETER_NAME_MAIL_QUEUE_ENTRY_ID => $entry->getId()]);
 
 		return $entry;
 	}
