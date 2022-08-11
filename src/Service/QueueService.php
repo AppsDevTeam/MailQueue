@@ -16,8 +16,6 @@ class QueueService {
 
 	const MUTEX_TIME_FORMAT = DATE_W3C;
 
-	const PARAMETER_NAME_MAIL_QUEUE_ENTRY_ID = 'mailQueueEntry_id';
-
 	/** @var string */
 	protected $queueEntryClass;
 
@@ -126,7 +124,7 @@ class QueueService {
 		$this->em->persist($entry);
 		$this->em->flush($entry);
 
-		$this->backgroundQueueService->publish($this->backgroundQueueCallbackName, [self::PARAMETER_NAME_MAIL_QUEUE_ENTRY_ID => $entry->getId()]);
+		$this->backgroundQueueService->publish($this->backgroundQueueCallbackName, [$entry->getId()]);
 
 		return $entry;
 	}
