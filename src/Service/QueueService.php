@@ -119,12 +119,12 @@ class QueueService {
 	 * @param array|callable $custom
 	 * @return Entity\AbstractMailQueueEntry
 	 */
-	public function enqueue(\Nette\Mail\Message $message, $custom = []) {
+	public function enqueue(\Nette\Mail\Message $message, $custom = [], ?int $backgroundQueuePriority = null) {
 		$entry = $this->createQueueEntry($message, $custom);
 		$this->em->persist($entry);
 		$this->em->flush($entry);
 
-		$this->backgroundQueueService->publish($this->backgroundQueueCallbackName, [$entry->getId()]);
+		$this->backgroundQueueService->publish($this->backgroundQueueCallbackName, [$entry->getId()], null, null, false, null, $backgroundQueuePriority);
 
 		return $entry;
 	}
