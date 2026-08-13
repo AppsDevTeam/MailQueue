@@ -6,38 +6,31 @@ use Doctrine\ORM\Mapping as ORM;
 
 
 /**
- * @ORM\MappedSuperclass
+ * Mapping is defined as PHP attributes only - the annotation driver was removed
+ * in ORM 3, so projects using this package need the attribute driver.
+ *
  * @property \DateTime $createdAt
  * @property \DateTime|NULL $sentAt
  * @property string $from
  * @property string $subject
  * @property \Nette\Mail\Message|NULL $message
  */
+#[ORM\MappedSuperclass]
 abstract class AbstractMailQueueEntry {
 
-	/**
-	 * @ORM\Column(type="datetime")
-	 */
+	#[ORM\Column(type: 'datetime')]
 	protected $createdAt;
 
-	/**
-	 * @ORM\Column(type="datetime", nullable=true)
-	 */
+	#[ORM\Column(type: 'datetime', nullable: true)]
 	protected $sentAt;
 
-	/**
-	 * @ORM\Column(type="string", name="`from`")
-	 */
+	#[ORM\Column(type: 'string', name: '`from`')]
 	protected $from;
 
-	/**
-	 * @ORM\Column(type="text")
-	 */
+	#[ORM\Column(type: 'text')]
 	protected $subject;
 
-	/**
-	 * @ORM\Column(type="blob", nullable=true)
-	 */
+	#[ORM\Column(type: 'blob', nullable: true)]
 	protected $message;
 
 	/**
@@ -57,7 +50,7 @@ abstract class AbstractMailQueueEntry {
 	 * @param \Nette\Mail\Message|NULL $message
 	 * @return $this
 	 */
-	public function setMessage(\Nette\Mail\Message $message = NULL): self {
+	public function setMessage(?\Nette\Mail\Message $message = NULL): self {
 		if ($message === NULL) {
 			$this->message = NULL;
 		} else {
