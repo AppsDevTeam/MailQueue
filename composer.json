@@ -11,8 +11,8 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "php": "^7.1|^8.0",
-        "nette/mail": "~3.0",
+        "php": "^8.1",
+        "nette/mail": "^3.1 || ^4.0",
         "nette/di": "^2.3 || ~3.0",
         "tracy/tracy": "^2.3",
         "adt/background-queue": "^4.22"

@@ -2,6 +2,8 @@
 
 namespace ADT\MailQueue\Traits;
 
+use Doctrine\ORM\Mapping as ORM;
+
 
 trait Identifier
 {
@@ -11,6 +13,9 @@ trait Identifier
 	 * @ORM\GeneratedValue
 	 * @var integer|null
 	 */
+	#[ORM\Id]
+	#[ORM\Column(type: 'integer')]
+	#[ORM\GeneratedValue]
 	protected $id;
 
 	/**

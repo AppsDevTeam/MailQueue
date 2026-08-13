@@ -19,7 +19,7 @@ class QueueService {
 	/** @var string */
 	protected $queueEntryClass;
 
-	/** @var \Kdyby\Doctrine\EntityManager */
+	/** @var EntityManagerInterface */
 	protected $em;
 
 	/** @var string */
@@ -28,7 +28,7 @@ class QueueService {
 	/** @var string */
 	protected $mutexTimeFile;
 
-	/** @var \Nette\Mail\IMailer */
+	/** @var \Nette\Mail\Mailer */
 	protected $mailer;
 
 	/** @var IMessenger */
@@ -55,6 +55,9 @@ class QueueService {
 	/** @var string */
 	protected $backgroundQueueCallbackName;
 
+	/** @var bool|null Detected lazily via reflection - see flushEntry() */
+	protected $emSupportsSingleEntityFlush;
+
 	public function __construct($config, EntityManagerInterface $em) {
 		if (! is_dir($config['tempDir'])) {
 			mkdir($config['tempDir']);
@@ -73,7 +76,7 @@ class QueueService {
 		$this->backgroundQueueCallbackName = $config['backgroundQueueCallbackName'];
 	}
 
-	public function setMailer(\Nette\Mail\IMailer $mailer) {
+	public function setMailer(\Nette\Mail\Mailer $mailer) {
 		$this->mailer = $mailer;
 		return $this;
 	}
@@ -122,7 +125,7 @@ class QueueService {
 	public function enqueue(\Nette\Mail\Message $message, $custom = [], ?int $backgroundQueuePriority = null) {
 		$entry = $this->createQueueEntry($message, $custom);
 		$this->em->persist($entry);
-		$this->em->flush($entry);
+		$this->flushEntry($entry);
 
 		$this->backgroundQueueService->publish($this->backgroundQueueCallbackName, [$entry->getId()], null, null, false, null, $backgroundQueuePriority);
 
@@ -184,10 +187,29 @@ class QueueService {
 		}
 
 		$this->em->persist($entry);
-		$this->em->flush($entry);
+		$this->flushEntry($entry);
 
 		return TRUE;
 	}
 
+	/**
+	 * Flushes the queue entry without touching other pending changes when possible.
+	 *
+	 * ORM 2 supports flushing a single entity, which keeps the caller's unit of work
+	 * untouched - enqueueing a mail must not write unrelated pending changes to DB.
+	 * ORM 3 removed single-entity flush, so there the full flush() is the only option
+	 * and callers should not enqueue mails with an unflushed unit of work.
+	 */
+	protected function flushEntry(Entity\AbstractMailQueueEntry $entry): void {
+		if ($this->emSupportsSingleEntityFlush === null) {
+			$this->emSupportsSingleEntityFlush = (new \ReflectionMethod($this->em, 'flush'))->getNumberOfParameters() > 0;
+		}
+
+		if ($this->emSupportsSingleEntityFlush) {
+			$this->em->flush($entry);
+		} else {
+			$this->em->flush();
+		}
+	}
 
 }
