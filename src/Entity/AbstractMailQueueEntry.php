@@ -6,12 +6,9 @@ use Doctrine\ORM\Mapping as ORM;
 
 
 /**
- * Mapping is duplicated as annotations and attributes on purpose: annotations
- * are read by the annotation driver (ORM 2), attributes by the attribute
- * driver (ORM 2.9+ and the only option in ORM 3). Each driver ignores the
- * other format, so the class works with both ORM generations.
+ * Mapping is defined as PHP attributes only - the annotation driver was removed
+ * in ORM 3, so projects using this package need the attribute driver.
  *
- * @ORM\MappedSuperclass
  * @property \DateTime $createdAt
  * @property \DateTime|NULL $sentAt
  * @property string $from
@@ -21,33 +18,18 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\MappedSuperclass]
 abstract class AbstractMailQueueEntry {
 
-	/**
-	 * @ORM\Column(type="datetime")
-	 */
 	#[ORM\Column(type: 'datetime')]
 	protected $createdAt;
 
-	/**
-	 * @ORM\Column(type="datetime", nullable=true)
-	 */
 	#[ORM\Column(type: 'datetime', nullable: true)]
 	protected $sentAt;
 
-	/**
-	 * @ORM\Column(type="string", name="`from`")
-	 */
 	#[ORM\Column(type: 'string', name: '`from`')]
 	protected $from;
 
-	/**
-	 * @ORM\Column(type="text")
-	 */
 	#[ORM\Column(type: 'text')]
 	protected $subject;
 
-	/**
-	 * @ORM\Column(type="blob", nullable=true)
-	 */
 	#[ORM\Column(type: 'blob', nullable: true)]
 	protected $message;
 
